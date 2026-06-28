@@ -5,6 +5,7 @@
 # To release a session: git rm -r --cached s0X/ && git add -f s0X/ && git commit
 s*/solution/
 s*/instructor_notes.md
+s*/instructor_notes_*.md
 s*/CLAUDE_CODE_PROMPTS.md
 prds/
 s02/
