@@ -10,7 +10,12 @@ Run the agent from the repo root:
 Session 1 graph:
     START --> respond --> END
 """
+from uuid import uuid4
+import sqlite3
 from langgraph.graph import END, StateGraph
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
+from .config import CHECKPOINT_DB
 
 from .nodes import respond
 from .state import WealthDeskState
@@ -38,13 +43,15 @@ from .state import WealthDeskState
 #
 # ---------------------------------------------------------------------------
 
-def build_graph():
+def build_graph(checkpointer=None):
     """Build and compile the WealthDesk LangGraph graph."""
     builder = StateGraph(WealthDeskState)
     builder.add_node("respond",respond)
     builder.set_entry_point("respond")
     builder.add_edge("respond", END)
-    return builder.compile()
+    if checkpointer is None:
+        checkpointer=MemorySaver()
+    return builder.compile(checkpointer=checkpointer)
     # raise NotImplementedError("TODO 5: implement build_graph() in wealthdesk/agent.py")
 
 
@@ -62,7 +69,10 @@ def run() -> None:
     print("  WealthDesk | Bharat National Bank")
     print("  Type 'quit' to exit")
     print("=" * 55)
-
+    conn = sqlite3.connect(str(CHECKPOINT_DB), check_same_thread=False)
+    s_graph    = build_graph(checkpointer=SqliteSaver(conn) )
+    thread_id = str(uuid4())
+    config    = {"configurable": {"thread_id": thread_id}}
     while True:
         try:
             user_input = input("\nYou: ").strip()
@@ -78,7 +88,7 @@ def run() -> None:
 
         # "response": "" is a placeholder to satisfy the TypedDict contract.
         # respond() overwrites it; graph.invoke() returns the full merged state.
-        result = graph.invoke({"customer_message": user_input, "response": ""})
+        result = s_graph.invoke({"customer_message": user_input, "response": ""},config=config)
         print(f"\nWealthDesk: {result['response']}")
 
 
