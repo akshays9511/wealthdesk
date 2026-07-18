@@ -17,7 +17,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.sqlite import SqliteSaver
 from .config import CHECKPOINT_DB
 
-from .nodes import respond
+from .nodes import respond , escalate, classify,decline , route_query
 from .state import WealthDeskState
 
 
@@ -47,10 +47,21 @@ def build_graph(checkpointer=None):
     """Build and compile the WealthDesk LangGraph graph."""
     builder = StateGraph(WealthDeskState)
     builder.add_node("respond",respond)
-    builder.set_entry_point("respond")
+    builder.add_node("classify",classify)
+    builder.add_node("decline",decline)
+    builder.add_node("escalate",escalate)
+    builder.set_entry_point("classify")
+    builder.add_conditional_edges("classify", route_query, {
+        "respond": "respond",
+        "esclate": "escalate",
+        "decline": "decline"
+    })
     builder.add_edge("respond", END)
-    if checkpointer is None:
-        checkpointer=MemorySaver()
+    builder.add_edge("escalate", END)
+    builder.add_edge("decline", END)
+
+    # if checkpointer is None:
+        # checkpointer=MemorySaver()
     return builder.compile(checkpointer=checkpointer)
     # raise NotImplementedError("TODO 5: implement build_graph() in wealthdesk/agent.py")
 
@@ -88,7 +99,10 @@ def run() -> None:
 
         # "response": "" is a placeholder to satisfy the TypedDict contract.
         # respond() overwrites it; graph.invoke() returns the full merged state.
-        result = s_graph.invoke({"customer_message": user_input, "response": ""},config=config)
+        result = s_graph.invoke({"customer_message": user_input,
+         "response": ""},config=config)
+        query_type=result.get("query_type","?")
+        print("uery_type is : ", query_type)
         print(f"\nWealthDesk: {result['response']}")
 
 
