@@ -108,5 +108,13 @@ DECLINE_RESPONSE = (
     "WealthDesk | Bharat National Bank"
 )
 
+BLOCKLIST = [
+    "ignore all previous",
+    "forget everything",
+    "you are now",
+    "disregard your system",
+    "act as",
+    "jailbreak",
+]
 DATA_DIR      = Path(__file__).parent.parent.parent.parent / "data"
 CHECKPOINT_DB = DATA_DIR / "checkpoints.db"

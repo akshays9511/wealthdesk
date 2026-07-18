@@ -10,7 +10,7 @@ Each node is a plain Python function:
 """
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
-from .config import SYSTEM_PROMPT,CLASSIFY_SYSTEM_PROMPT ,ESCALATE_RESPONSE , DECLINE_RESPONSE
+from .config import SYSTEM_PROMPT,CLASSIFY_SYSTEM_PROMPT ,ESCALATE_RESPONSE , DECLINE_RESPONSE, BLOCKLIST
 from .state import WealthDeskState
 from .tools import llm, classifier_llm
 
@@ -57,8 +57,18 @@ def respond(state: WealthDeskState) -> dict:
 
 
 def classify(state: WealthDeskState) -> dict:
+
+    msg = state["customer_message"].strip()
+ 
+    if any(phrase in msg.lower() for phrase in BLOCKLIST):
+        return {"query_type": "OUT_OF_SCOPE"}
+ 
+    if not msg or len(msg) < 10 or len(msg) > 500:
+        return {"query_type": "OUT_OF_SCOPE"}
+    
     messages= [
-            SystemMessage(content=CLASSIFY_SYSTEM_PROMPT)
+            SystemMessage(content=CLASSIFY_SYSTEM_PROMPT),
+            HumanMessage(content=state["customer_message"])
         ]
     history= state.get('history',[])
     for turn in history:

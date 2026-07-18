@@ -28,6 +28,7 @@ class WealthDeskState(TypedDict):
     response:str
     history: list[dict]
     query_type:str
+    retrieved_docs:list[str]
 
 
 # Guard: raises at import time if the fields haven't been defined yet.

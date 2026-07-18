@@ -81,7 +81,7 @@ def run() -> None:
     print("  Type 'quit' to exit")
     print("=" * 55)
     conn = sqlite3.connect(str(CHECKPOINT_DB), check_same_thread=False)
-    s_graph    = build_graph(checkpointer=SqliteSaver(conn) )
+    _graph    = build_graph(checkpointer=SqliteSaver(conn) )
     thread_id = str(uuid4())
     config    = {"configurable": {"thread_id": thread_id}}
     while True:
@@ -99,7 +99,7 @@ def run() -> None:
 
         # "response": "" is a placeholder to satisfy the TypedDict contract.
         # respond() overwrites it; graph.invoke() returns the full merged state.
-        result = s_graph.invoke({"customer_message": user_input,
+        result = _graph.invoke({"customer_message": user_input,
          "response": ""},config=config)
         query_type=result.get("query_type","?")
         print("uery_type is : ", query_type)
