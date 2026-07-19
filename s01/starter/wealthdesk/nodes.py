@@ -60,8 +60,8 @@ def classify(state: WealthDeskState) -> dict:
 
     msg = state["customer_message"].strip()
  
-    if any(phrase in msg.lower() for phrase in BLOCKLIST):
-        return {"query_type": "OUT_OF_SCOPE"}
+    # if any(phrase in msg.lower() for phrase in BLOCKLIST):
+        # return {"query_type": "OUT_OF_SCOPE"}
  
     if not msg or len(msg) < 10 or len(msg) > 500:
         return {"query_type": "OUT_OF_SCOPE"}
